@@ -344,7 +344,7 @@
 
   .expand-toggle:hover { border-color: var(--muted); }
 
-  .hidden { display: none; }
+  .hidden { display: none !important; }
 
   .week-note {
     margin: 0 24px 16px;
@@ -381,30 +381,19 @@
     margin-right: 4px;
   }
 
-  .trainer-btn {
-    margin-left: auto; padding: 6px 14px; border: 1px solid var(--border);
-    border-radius: 4px; background: none; color: var(--muted);
-    font-family: 'Bebas Neue', sans-serif; font-size: 14px;
-    letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
-  }
-  .trainer-btn.active { border-color: var(--accent2); color: var(--accent2); background: rgba(255,77,0,0.1); }
-
   .add-ex-btn {
     width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 4px;
     border: 1px dashed var(--border); border-radius: 6px; background: none;
     color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 16px;
-    letter-spacing: 1px; cursor: pointer; transition: all 0.2s; display: none;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
   }
   .add-ex-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-  .trainer-mode .add-ex-btn { display: block; }
 
   .change-ex-btn {
     font-size: 10px; padding: 3px 8px; border: 1px solid var(--border);
     border-radius: 3px; background: none; color: var(--accent2);
     font-family: 'DM Sans', sans-serif; cursor: pointer; margin-left: 6px;
-    display: none;
   }
-  .trainer-mode .change-ex-btn { display: inline-block; }
 
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -454,7 +443,6 @@
 <header>
   <h1>ANTRENMAN <span style="color:var(--accent2)">TAKİP</span></h1>
   <span id="weightLabel" onclick="editWeight()" title="Değiştirmek için tıkla" style="cursor:pointer">70 kg · 4 Haftalık Program</span>
-  <button id="trainerBtn" class="trainer-btn" onclick="openPinModal()">ANTRENÖR</button>
 </header>
 
 <div class="week-tabs" id="weekTabs"></div>
@@ -559,8 +547,6 @@ const DEFAULT_PROGRAM = {
 
 let currentWeek = 0;
 let currentDay = 0;
-let trainerMode = false;
-const TRAINER_PIN = '1234';
 let pendingExChange = null;
 // Storage key: "w{week}_d{day}_ex{ex}_s{set}_kg" etc.
 function storageKey(w, d, ex, s, type) {
@@ -755,64 +741,7 @@ function completeDay(w, d) {
   render();
 }
 
-function getUserWeight() {
-  return localStorage.getItem('user_weight') || '70';
-}
-function editWeight() {
-  const cur = getUserWeight();
-  const label = document.getElementById('weightLabel');
-  label.innerHTML = '';
-  const inp = document.createElement('input');
-  inp.type = 'number';
-  inp.value = cur;
-  inp.style.cssText = 'width:56px;background:var(--surface);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:"DM Sans",sans-serif;font-size:13px;padding:2px 6px;text-align:center;-moz-appearance:textfield;';
-  const suffix = document.createTextNode(' kg · 4 Haftalık Program');
-  label.appendChild(inp);
-  label.appendChild(suffix);
-  inp.focus(); inp.select();
-  function save() {
-    const val = parseInt(inp.value) || parseInt(cur);
-    localStorage.setItem('user_weight', val);
-    label.textContent = val + ' kg · 4 Haftalık Program';
-    label.onclick = editWeight;
-  }
-  inp.onblur = save;
-  inp.onkeydown = e => {
-    if (e.key === 'Enter') inp.blur();
-    if (e.key === 'Escape') { label.textContent = cur + ' kg · 4 Haftalık Program'; label.onclick = editWeight; }
-  };
-}
-
-function setTrainerMode(on) {
-  trainerMode = on;
-  document.body.classList.toggle('trainer-mode', on);
-  const btn = document.getElementById('trainerBtn');
-  btn.classList.toggle('active', on);
-  btn.textContent = on ? 'ANTRENÖR MODU ✓' : 'ANTRENÖR';
-}
-
-function openPinModal() {
-  if (trainerMode) { setTrainerMode(false); return; }
-  document.getElementById('pinInput').value = '';
-  document.getElementById('pinError').classList.add('hidden');
-  document.getElementById('trainerPinModal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('pinInput').focus(), 50);
-}
-function closePinModal() {
-  document.getElementById('trainerPinModal').classList.add('hidden');
-}
-function submitPin() {
-  if (document.getElementById('pinInput').value === TRAINER_PIN) {
-    closePinModal(); setTrainerMode(true);
-  } else {
-    document.getElementById('pinError').classList.remove('hidden');
-    document.getElementById('pinInput').value = '';
-    document.getElementById('pinInput').focus();
-  }
-}
-
 function openExPicker(dayIndex, exIndex) {
-  if (!trainerMode) return;
   pendingExChange = { dayIndex, exIndex };
   document.getElementById('exercisePickerModal').querySelector('.modal-title').textContent = 'HAREKETİ DEĞİŞTİR';
   document.getElementById('exSearchInput').value = '';
@@ -821,7 +750,6 @@ function openExPicker(dayIndex, exIndex) {
   setTimeout(() => document.getElementById('exSearchInput').focus(), 50);
 }
 function openAddExercise(dayIndex) {
-  if (!trainerMode) return;
   pendingExChange = { dayIndex, exIndex: -1 };
   document.getElementById('exercisePickerModal').querySelector('.modal-title').textContent = 'HAREKETİ EKLE';
   document.getElementById('exSearchInput').value = '';
@@ -869,6 +797,35 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+function getUserWeight() {
+  return localStorage.getItem('user_weight') || '70';
+}
+function editWeight() {
+  const cur = getUserWeight();
+  const label = document.getElementById('weightLabel');
+  label.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.value = cur;
+  inp.style.cssText = 'width:56px;background:var(--surface);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:"DM Sans",sans-serif;font-size:13px;padding:2px 6px;text-align:center;-moz-appearance:textfield;';
+  const suffix = document.createTextNode(' kg · 4 Haftalık Program');
+  label.appendChild(inp);
+  label.appendChild(suffix);
+  inp.focus(); inp.select();
+  function save() {
+    const val = parseInt(inp.value) || parseInt(cur);
+    localStorage.setItem('user_weight', val);
+    label.textContent = val + ' kg · 4 Haftalık Program';
+    label.onclick = editWeight;
+  }
+  inp.onblur = save;
+  inp.onkeydown = e => {
+    if (e.key === 'Enter') inp.blur();
+    if (e.key === 'Escape') { label.textContent = cur + ' kg · 4 Haftalık Program'; label.onclick = editWeight; }
+  };
+}
+
+
 function render() {
   renderWeekTabs();
   renderStats();
@@ -881,18 +838,6 @@ function render() {
 
 render();
 </script>
-
-<div id="trainerPinModal" class="modal-overlay hidden">
-  <div class="modal-box">
-    <div class="modal-title">ANTRENÖR GİRİŞİ</div>
-    <input id="pinInput" class="modal-input" type="password" placeholder="PIN" maxlength="4" onkeydown="if(event.key==='Enter')submitPin()">
-    <div id="pinError" class="modal-error hidden">Yanlış PIN</div>
-    <div class="modal-actions">
-      <button onclick="submitPin()">GİRİŞ</button>
-      <button onclick="closePinModal()">İPTAL</button>
-    </div>
-  </div>
-</div>
 
 <div id="exercisePickerModal" class="modal-overlay hidden">
   <div class="modal-box modal-box--wide">
