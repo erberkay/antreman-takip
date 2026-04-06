@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4 Haftalık Antrenman Programı</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --card: #181818;
+    --border: #2a2a2a;
+    --accent: #e8ff00;
+    --accent2: #ff4d00;
+    --text: #f0f0f0;
+    --muted: #666;
+    --green: #00e676;
+    --red: #ff1744;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding: 32px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 8vw, 56px);
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  header span {
+    font-size: 13px;
+    color: var(--muted);
+    padding-bottom: 6px;
+  }
+
+  .week-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-tab {
+    flex-shrink: 0;
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .week-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+  .week-tab:hover:not(.active) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .day-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 12px 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .day-tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .day-tab.active {
+    background: var(--card);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .day-tab.rest {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .day-tab.completed {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .content {
+    padding: 20px 24px;
+    max-width: 800px;
+  }
+
+  .day-header {
+    margin-bottom: 20px;
+  }
+
+  .day-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .day-header .focus {
+    font-size: 12px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .rest-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .rest-day .icon { font-size: 48px; }
+  .rest-day h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; color: var(--border); }
+
+  .exercise-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .exercise-card:hover { border-color: #333; }
+
+  .ex-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .ex-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .ex-name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .ex-meta {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .ex-meta span {
+    display: block;
+  }
+
+  .ex-body {
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+
+  .sets-grid {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .sets-grid .col-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .set-num {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .set-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 8px;
+    text-align: center;
+    width: 100%;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .set-input::-webkit-outer-spin-button,
+  .set-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .set-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .set-input.filled {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .ex-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 6px 10px;
+    border-left: 2px solid var(--accent2);
+    background: rgba(255,77,0,0.05);
+    border-radius: 0 4px 4px 0;
+  }
+
+  .complete-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .complete-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .complete-btn.done {
+    background: var(--green);
+    color: #000;
+  }
+
+  .progress-bar-wrap {
+    padding: 0 24px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .expand-toggle {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .expand-toggle:hover { border-color: var(--muted); }
+
+  .hidden { display: none; }
+
+  .week-note {
+    margin: 0 24px 16px;
+    padding: 10px 14px;
+    background: rgba(232,255,0,0.05);
+    border: 1px solid rgba(232,255,0,0.15);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.3px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    padding: 12px 24px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stat-pill {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .stat-pill strong {
+    color: var(--text);
+    font-size: 13px;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ANTRENMAN</h1>
+  <span>70 kg · 4 Haftalık Program</span>
+</header>
+
+<div class="week-tabs" id="weekTabs"></div>
+<div class="stats-row" id="statsRow"></div>
+<div class="week-note" id="weekNote"></div>
+<div class="day-tabs" id="dayTabs"></div>
+<div class="progress-bar-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <span class="progress-text" id="progressText">0 / 0 set</span>
+</div>
+<div class="content" id="content"></div>
+
+<script>
+const PROGRAM = {
+  weeks: [
+    { label: "Hafta 1", note: "🔥 Adaptasyon haftası — teknik ve baz ağırlık. Her egzersizde form öncelik.", intensity: "Düşük-Orta" },
+    { label: "Hafta 2", note: "📈 Ağırlıkları %5-10 artır, rep sayısını koru.", intensity: "Orta" },
+    { label: "Hafta 3", note: "💪 En yoğun hafta — ağırlıkları zorla, son 2 rep zor olsun.", intensity: "Yüksek" },
+    { label: "Hafta 4", note: "🔄 Deload haftası — ağırlıkları %20 düşür, form ve kas-zihin bağlantısına odaklan.", intensity: "Düşük (Deload)" },
+  ],
+  days: [
+    {
+      label: "Gün 1", name: "GÖĞÜS & TRİSEPS", rest: false,
+      exercises: [
+        { name: "Düz Bench Press", sets: 4, reps: "6-8", note: "Kürek kemiklerini sıkıştır, kontrollü in." },
+        { name: "İnkline Dumbbell Press", sets: 3, reps: "10-12", note: "30-45° açı, üst göğsü hedefle." },
+        { name: "Kablo Fly (Çapraz)", sets: 3, reps: "12-15", note: "Göğsü tam sık, kısa duraklama." },
+        { name: "Skull Crusher (EZ Bar)", sets: 3, reps: "10-12", note: "Dirsekler sabit, yavaş in." },
+        { name: "Kablo Tricep Pushdown", sets: 3, reps: "12-15", note: "Tam uzat, rope veya straight bar." },
+      ]
+    },
+    {
+      label: "Gün 2", name: "SIRT & BİSEPS", rest: false,
+      exercises: [
+        { name: "Deadlift", sets: 4, reps: "5-6", note: "Sırt düz, belden eğilme. Ağır ama kontrollü." },
+        { name: "Barbell Row", sets: 4, reps: "8-10", note: "Göğse çek, dirsekleri geriye al." },
+        { name: "Lat Pulldown (Geniş Tutuş)", sets: 3, reps: "10-12", note: "Göğse çek, omuzları geri-aşağı." },
+        { name: "Seated Cable Row", sets: 3, reps: "12", note: "Tam uzat — tam çek, kontraksiyonu hisset." },
+        { name: "Barbell Curl", sets: 3, reps: "10-12", note: "Dirsek sabit, kontrolsüz sallanma yok." },
+        { name: "Hammer Curl", sets: 2, reps: "12-15", note: "Brachialis ve ön kol çalışır." },
+      ]
+    },
+    {
+      label: "Gün 3", name: "DİNLENME", rest: true, exercises: []
+    },
+    {
+      label: "Gün 4", name: "OMUZLAR", rest: false,
+      exercises: [
+        { name: "Barbell Overhead Press", sets: 4, reps: "6-8", note: "Ayakta ya da oturarak. Core sıkı." },
+        { name: "Dumbbell Lateral Raise", sets: 4, reps: "15-20", note: "Hafif ağırlık, tam açılım, yavaş in." },
+        { name: "Face Pull (Kablo)", sets: 3, reps: "15-20", note: "Arka omuz + rotator cuff için kritik." },
+        { name: "Dumbbell Front Raise", sets: 3, reps: "12", note: "Alternatif veya birlikte." },
+        { name: "Shrug (Barbell/DB)", sets: 3, reps: "12-15", note: "Trapezi tam sık, döndürme yok." },
+      ]
+    },
+    {
+      label: "Gün 5", name: "BACAK", rest: false,
+      exercises: [
+        { name: "Back Squat", sets: 4, reps: "6-8", note: "Paralel altı inin, diz ayak ucuyla hizalı." },
+        { name: "Romanian Deadlift", sets: 4, reps: "10", note: "Hamstring gerilmesini hisset." },
+        { name: "Leg Press", sets: 3, reps: "12-15", note: "Ayak genişliğini değiştirerek çeşitlendir." },
+        { name: "Leg Curl (Yatar)", sets: 3, reps: "12-15", note: "Hamstring izolasyon." },
+        { name: "Leg Extension", sets: 3, reps: "15", note: "Quad izolasyon, üstte duraklama." },
+        { name: "Standing Calf Raise", sets: 4, reps: "15-20", note: "Tam uzat, tam kaldır." },
+      ]
+    },
+    {
+      label: "Gün 6", name: "DİNLENME", rest: true, exercises: []
+    },
+    {
+      label: "Gün 7", name: "FULL BODY PUMP", rest: false,
+      exercises: [
+        { name: "Pull-up / Lat Pulldown", sets: 3, reps: "8-12", note: "Isınma, hafif yoğunluk." },
+        { name: "Dumbbell Press (İnkline)", sets: 3, reps: "12", note: "" },
+        { name: "Goblet Squat", sets: 3, reps: "15", note: "Hafif, form odaklı." },
+        { name: "Kablo Lateral Raise", sets: 3, reps: "15", note: "Tek tek yapılabilir." },
+        { name: "Plank / Ab Wheel", sets: 3, reps: "30-60sn", note: "Core finisher." },
+      ]
+    },
+  ]
+};
+
+let currentWeek = 0;
+let currentDay = 0;
+// Storage key: "w{week}_d{day}_ex{ex}_s{set}_kg" etc.
+function storageKey(w, d, ex, s, type) {
+  return `w${w}_d${d}_ex${ex}_s${s}_${type}`;
+}
+
+function saveVal(w, d, ex, s, type, val) {
+  localStorage.setItem(storageKey(w,d,ex,s,type), val);
+}
+
+function loadVal(w, d, ex, s, type) {
+  return localStorage.getItem(storageKey(w,d,ex,s,type)) || '';
+}
+
+function isDayCompleted(w, d) {
+  return localStorage.getItem(`w${w}_d${d}_done`) === '1';
+}
+
+function renderWeekTabs() {
+  const cont = document.getElementById('weekTabs');
+  cont.innerHTML = '';
+  PROGRAM.weeks.forEach((wk, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'week-tab' + (i === currentWeek ? ' active' : '');
+    btn.textContent = wk.label;
+    btn.onclick = () => { currentWeek = i; currentDay = 0; render(); };
+    cont.appendChild(btn);
+  });
+}
+
+function renderStats() {
+  const row = document.getElementById('statsRow');
+  let totalSets = 0, filledSets = 0;
+  PROGRAM.days.forEach((day, d) => {
+    if (day.rest) return;
+    day.exercises.forEach((ex, e) => {
+      for (let s = 0; s < ex.sets; s++) {
+        totalSets++;
+        if (loadVal(currentWeek, d, e, s, 'kg')) filledSets++;
+      }
+    });
+  });
+  const completedDays = PROGRAM.days.filter((d,i) => !d.rest && isDayCompleted(currentWeek,i)).length;
+  const trainDays = PROGRAM.days.filter(d => !d.rest).length;
+
+  row.innerHTML = `
+    <div class="stat-pill"><strong>${completedDays}/${trainDays}</strong>gün tamamlandı</div>
+    <div class="stat-pill"><strong>${filledSets}</strong>set kaydedildi</div>
+    <div class="stat-pill"><strong>${PROGRAM.weeks[currentWeek].intensity}</strong></div>
+  `;
+}
+
+function renderDayTabs() {
+  const cont = document.getElementById('dayTabs');
+  cont.innerHTML = '';
+  PROGRAM.days.forEach((day, i) => {
+    const btn = document.createElement('button');
+    let cls = 'day-tab';
+    if (day.rest) cls += ' rest';
+    else if (isDayCompleted(currentWeek, i)) cls += ' completed';
+    if (i === currentDay) cls += ' active';
+    btn.className = cls;
+    btn.textContent = day.rest ? day.label + ' 💤' : (isDayCompleted(currentWeek,i) ? day.label + ' ✓' : day.label);
+    btn.onclick = () => { currentDay = i; renderContent(); renderProgress(); };
+    cont.appendChild(btn);
+  });
+}
+
+function renderProgress() {
+  const day = PROGRAM.days[currentDay];
+  if (day.rest) {
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressText').textContent = 'Dinlenme günü';
+    return;
+  }
+  let total = 0, filled = 0;
+  day.exercises.forEach((ex, e) => {
+    for (let s = 0; s < ex.sets; s++) {
+      total++;
+      if (loadVal(currentWeek, currentDay, e, s, 'kg')) filled++;
+    }
+  });
+  const pct = total ? Math.round(filled/total*100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${filled} / ${total} set`;
+}
+
+function renderContent() {
+  const cont = document.getElementById('content');
+  const day = PROGRAM.days[currentDay];
+  const w = currentWeek, d = currentDay;
+
+  if (day.rest) {
+    cont.innerHTML = `
+      <div class="rest-day">
+        <div class="icon">😴</div>
+        <h3>Dinlenme Günü</h3>
+        <p style="color:var(--muted);font-size:13px;max-width:220px;line-height:1.6">Kaslar antrenman sırasında değil, dinlenirken büyür.</p>
+      </div>`;
+    return;
+  }
+
+  let html = `<div class="day-header"><h2>${day.name}</h2><div class="focus">${PROGRAM.weeks[w].label} · ${day.label}</div></div>`;
+
+  day.exercises.forEach((ex, e) => {
+    html += `<div class="exercise-card" id="excard_${e}">
+      <div class="ex-header" onclick="toggleEx(${e})">
+        <span class="ex-num">${e+1}</span>
+        <span class="ex-name">${ex.name}</span>
+        <div class="ex-meta">
+          <span>${ex.sets} Set</span>
+          <span>${ex.reps} Tekrar</span>
+        </div>
+        <button class="expand-toggle" id="toggle_${e}">▼</button>
+      </div>
+      <div class="ex-body" id="exbody_${e}">
+        <div class="sets-grid">
+          <div class="col-label">SET</div>
+          <div class="col-label">KG</div>
+          <div class="col-label">TEKRAR</div>
+          <div class="col-label">DURUM</div>`;
+
+    for (let s = 0; s < ex.sets; s++) {
+      const kgVal = loadVal(w, d, e, s, 'kg');
+      const repVal = loadVal(w, d, e, s, 'rep');
+      const done = loadVal(w, d, e, s, 'done');
+      html += `
+          <div class="set-num">${s+1}</div>
+          <input class="set-input${kgVal ? ' filled':''}" type="number" placeholder="kg" value="${kgVal}" 
+            onchange="saveInput(${w},${d},${e},${s},'kg',this)" 
+            oninput="saveInput(${w},${d},${e},${s},'kg',this)">
+          <input class="set-input${repVal ? ' filled':''}" type="number" placeholder="${ex.reps.split('-')[0]}" value="${repVal}"
+            onchange="saveInput(${w},${d},${e},${s},'rep',this)"
+            oninput="saveInput(${w},${d},${e},${s},'rep',this)">
+          <input class="set-input${done ? ' filled':''}" type="text" placeholder="✓" value="${done}"
+            onchange="saveInput(${w},${d},${e},${s},'done',this)"
+            oninput="saveInput(${w},${d},${e},${s},'done',this)" readonly
+            onclick="toggleDone(${w},${d},${e},${s},this)">`;
+    }
+
+    html += `</div>`;
+    if (ex.note) html += `<div class="ex-note">${ex.note}</div>`;
+    html += `</div></div>`;
+  });
+
+  const done = isDayCompleted(w, d);
+  html += `<button class="complete-btn${done ? ' done' : ''}" onclick="completeDay(${w},${d})" id="completeBtn">
+    ${done ? '✓ GÜN TAMAMLANDI' : 'GÜNÜ TAMAMLA'}
+  </button>`;
+
+  cont.innerHTML = html;
+}
+
+function toggleEx(e) {
+  const body = document.getElementById('exbody_' + e);
+  const tog = document.getElementById('toggle_' + e);
+  if (body.classList.contains('hidden')) {
+    body.classList.remove('hidden');
+    tog.textContent = '▼';
+  } else {
+    body.classList.add('hidden');
+    tog.textContent = '▶';
+  }
+}
+
+function saveInput(w, d, e, s, type, el) {
+  saveVal(w, d, e, s, type, el.value);
+  if (el.value) el.classList.add('filled');
+  else el.classList.remove('filled');
+  renderProgress();
+}
+
+function toggleDone(w, d, e, s, el) {
+  const cur = loadVal(w, d, e, s, 'done');
+  const next = cur ? '' : '✓';
+  saveVal(w, d, e, s, 'done', next);
+  el.value = next;
+  if (next) el.classList.add('filled');
+  else el.classList.remove('filled');
+}
+
+function completeDay(w, d) {
+  const cur = localStorage.getItem(`w${w}_d${d}_done`);
+  if (cur === '1') {
+    localStorage.removeItem(`w${w}_d${d}_done`);
+  } else {
+    localStorage.setItem(`w${w}_d${d}_done`, '1');
+  }
+  render();
+}
+
+function render() {
+  renderWeekTabs();
+  renderStats();
+  document.getElementById('weekNote').textContent = PROGRAM.weeks[currentWeek].note;
+  renderDayTabs();
+  renderContent();
+  renderProgress();
+}
+
+render();
+</script>
+</body>
+</html>
