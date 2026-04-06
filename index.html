@@ -614,7 +614,7 @@ function renderDayTabs() {
     if (i === currentDay) cls += ' active';
     btn.className = cls;
     btn.textContent = day.rest ? day.label + ' 💤' : (isDayCompleted(currentWeek,i) ? day.label + ' ✓' : day.label);
-    btn.onclick = () => { currentDay = i; renderContent(); renderProgress(); };
+    btn.onclick = () => { currentDay = i; renderDayTabs(); renderContent(); renderProgress(); };
     cont.appendChild(btn);
   });
 }
