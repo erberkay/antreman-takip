@@ -485,62 +485,66 @@ const DEFAULT_PROGRAM = {
   ],
   days: [
     {
-      label: "Gün 1", name: "GÖĞÜS & TRİSEPS", rest: false,
+      label: "Gün 1", name: "GÖĞÜS + TRİSEPS", rest: false,
       exercises: [
-        { name: "Düz Bench Press", sets: 4, reps: "6-8", note: "Kürek kemiklerini sıkıştır, kontrollü in." },
-        { name: "İnkline Dumbbell Press", sets: 3, reps: "10-12", note: "30-45° açı, üst göğsü hedefle." },
-        { name: "Kablo Fly (Çapraz)", sets: 3, reps: "12-15", note: "Göğsü tam sık, kısa duraklama." },
-        { name: "Skull Crusher (EZ Bar)", sets: 3, reps: "10-12", note: "Dirsekler sabit, yavaş in." },
-        { name: "Kablo Tricep Pushdown", sets: 3, reps: "12-15", note: "Tam uzat, rope veya straight bar." },
+        { name: "Bench Press", sets: 4, reps: "6-8", note: "Kürek kemiklerini sıkıştır, kontrollü in." },
+        { name: "Incline Dumbbell Press", sets: 4, reps: "8-10", note: "30-45° açı, üst göğsü hedefle." },
+        { name: "Cable Fly", sets: 3, reps: "12", note: "Göğsü tam sık, kısa duraklama tepede." },
+        { name: "Dips", sets: 3, reps: "Failure", note: "Öne eğil, göğüsü hisset." },
+        { name: "Triceps Pushdown", sets: 3, reps: "10-12", note: "Tam uzat, rope veya straight bar." },
+        { name: "Skull Crusher", sets: 3, reps: "8-10", note: "Dirsekler sabit, yavaş in." },
       ]
     },
     {
-      label: "Gün 2", name: "SIRT & BİSEPS", rest: false,
+      label: "Gün 2", name: "SIRT + BİSEPS", rest: false,
       exercises: [
-        { name: "Deadlift", sets: 4, reps: "5-6", note: "Sırt düz, belden eğilme. Ağır ama kontrollü." },
-        { name: "Barbell Row", sets: 4, reps: "8-10", note: "Göğse çek, dirsekleri geriye al." },
-        { name: "Lat Pulldown (Geniş Tutuş)", sets: 3, reps: "10-12", note: "Göğse çek, omuzları geri-aşağı." },
-        { name: "Seated Cable Row", sets: 3, reps: "12", note: "Tam uzat — tam çek, kontraksiyonu hisset." },
-        { name: "Barbell Curl", sets: 3, reps: "10-12", note: "Dirsek sabit, kontrolsüz sallanma yok." },
-        { name: "Hammer Curl", sets: 2, reps: "12-15", note: "Brachialis ve ön kol çalışır." },
+        { name: "Deadlift", sets: 4, reps: "5", note: "Ağır gir. Sırt düz, belden eğilme." },
+        { name: "Lat Pulldown", sets: 4, reps: "8-10", note: "Göğse çek, omuzları geri-aşağı." },
+        { name: "Barbell Row", sets: 4, reps: "8", note: "Göğse çek, dirsekleri geriye al." },
+        { name: "Seated Row", sets: 3, reps: "10", note: "Tam uzat — tam çek, kontraksiyonu hisset." },
+        { name: "Barbell Curl", sets: 3, reps: "10", note: "Dirsek sabit, kontrolsüz sallanma yok." },
+        { name: "Hammer Curl", sets: 3, reps: "10", note: "Brachialis ve ön kol çalışır." },
       ]
     },
     {
-      label: "Gün 3", name: "DİNLENME", rest: true, exercises: []
-    },
-    {
-      label: "Gün 4", name: "OMUZLAR", rest: false,
+      label: "Gün 3", name: "OMUZ", rest: false,
       exercises: [
-        { name: "Barbell Overhead Press", sets: 4, reps: "6-8", note: "Ayakta ya da oturarak. Core sıkı." },
-        { name: "Dumbbell Lateral Raise", sets: 4, reps: "15-20", note: "Hafif ağırlık, tam açılım, yavaş in." },
-        { name: "Face Pull (Kablo)", sets: 3, reps: "15-20", note: "Arka omuz + rotator cuff için kritik." },
-        { name: "Dumbbell Front Raise", sets: 3, reps: "12", note: "Alternatif veya birlikte." },
-        { name: "Shrug (Barbell/DB)", sets: 3, reps: "12-15", note: "Trapezi tam sık, döndürme yok." },
+        { name: "Overhead Press", sets: 4, reps: "6-8", note: "Ayakta ya da oturarak. Core sıkı." },
+        { name: "Lateral Raise", sets: 4, reps: "12", note: "Hafif ağırlık, tam açılım, yavaş in." },
+        { name: "Rear Delt Fly", sets: 3, reps: "12", note: "Arka omuz için. Gövde öne eğik." },
+        { name: "Front Raise", sets: 3, reps: "10", note: "Alternatif veya birlikte." },
+        { name: "Shrug", sets: 4, reps: "12", note: "Trapezi tam sık, döndürme yok." },
       ]
     },
     {
-      label: "Gün 5", name: "BACAK", rest: false,
+      label: "Gün 4", name: "BACAK", rest: false,
       exercises: [
-        { name: "Back Squat", sets: 4, reps: "6-8", note: "Paralel altı inin, diz ayak ucuyla hizalı." },
-        { name: "Romanian Deadlift", sets: 4, reps: "10", note: "Hamstring gerilmesini hisset." },
-        { name: "Leg Press", sets: 3, reps: "12-15", note: "Ayak genişliğini değiştirerek çeşitlendir." },
-        { name: "Leg Curl (Yatar)", sets: 3, reps: "12-15", note: "Hamstring izolasyon." },
-        { name: "Leg Extension", sets: 3, reps: "15", note: "Quad izolasyon, üstte duraklama." },
-        { name: "Standing Calf Raise", sets: 4, reps: "15-20", note: "Tam uzat, tam kaldır." },
+        { name: "Squat", sets: 4, reps: "6-8", note: "En kritik gün. Paralel altı in, diz ayak ucuyla hizalı." },
+        { name: "Leg Press", sets: 4, reps: "10", note: "Ayak genişliğini değiştirerek çeşitlendir." },
+        { name: "Leg Curl", sets: 3, reps: "12", note: "Hamstring izolasyon." },
+        { name: "Leg Extension", sets: 3, reps: "12", note: "Quad izolasyon, üstte duraklama." },
+        { name: "Calf Raise", sets: 5, reps: "15", note: "Tam uzat, tam kaldır." },
       ]
     },
     {
-      label: "Gün 6", name: "DİNLENME", rest: true, exercises: []
+      label: "Gün 5", name: "FULL / PUMP DAY", rest: false,
+      exercises: [
+        { name: "Incline Bench", sets: 3, reps: "10", note: "Hafif-orta ağırlık, pump odaklı." },
+        { name: "Pull-up", sets: 3, reps: "Failure", note: "Tam açılım, tam kapat." },
+        { name: "Dumbbell Shoulder Press", sets: 3, reps: "10", note: "" },
+        { name: "Cable Fly", sets: 3, reps: "12", note: "" },
+        { name: "Arms Superset (Biceps + Triceps)", sets: 4, reps: "10-12", note: "Dinlenmeden biseps → triseps geç." },
+      ]
     },
     {
-      label: "Gün 7", name: "FULL BODY PUMP", rest: false,
+      label: "Gün 6", name: "OPSİYONEL", rest: false,
       exercises: [
-        { name: "Pull-up / Lat Pulldown", sets: 3, reps: "8-12", note: "Isınma, hafif yoğunluk." },
-        { name: "Dumbbell Press (İnkline)", sets: 3, reps: "12", note: "" },
-        { name: "Goblet Squat", sets: 3, reps: "15", note: "Hafif, form odaklı." },
-        { name: "Kablo Lateral Raise", sets: 3, reps: "15", note: "Tek tek yapılabilir." },
-        { name: "Plank / Ab Wheel", sets: 3, reps: "30-60sn", note: "Core finisher." },
+        { name: "Hafif Kardiyo", sets: 1, reps: "20 dk", note: "Yürüyüş veya bisiklet, düşük tempo." },
+        { name: "Karın", sets: 3, reps: "Failure", note: "Crunch, leg raise veya plank kombinasyonu." },
       ]
+    },
+    {
+      label: "Gün 7", name: "DİNLENME", rest: true, exercises: []
     },
   ]
 };
