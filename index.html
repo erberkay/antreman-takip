@@ -380,6 +380,64 @@
     font-size: 13px;
     margin-right: 4px;
   }
+
+  .trainer-btn {
+    margin-left: auto; padding: 6px 14px; border: 1px solid var(--border);
+    border-radius: 4px; background: none; color: var(--muted);
+    font-family: 'Bebas Neue', sans-serif; font-size: 14px;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+  }
+  .trainer-btn.active { border-color: var(--accent2); color: var(--accent2); background: rgba(255,77,0,0.1); }
+
+  .change-ex-btn {
+    font-size: 10px; padding: 3px 8px; border: 1px solid var(--border);
+    border-radius: 3px; background: none; color: var(--accent2);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-left: 6px;
+    display: none;
+  }
+  .trainer-mode .change-ex-btn { display: inline-block; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 28px 24px; width: 90%; max-width: 360px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .modal-box--wide { max-width: 560px; max-height: 80vh; overflow: hidden; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); }
+  .modal-input {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px;
+    padding: 10px 12px; width: 100%;
+  }
+  .modal-input:focus { outline: none; border-color: var(--accent); }
+  .modal-error { color: var(--red); font-size: 12px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button {
+    flex: 1; padding: 11px; border: 1px solid var(--border); border-radius: 4px;
+    background: none; color: var(--text); font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: 1px; cursor: pointer;
+  }
+  .modal-actions button:first-child { background: var(--accent); border-color: var(--accent); color: #000; }
+  .ex-library-list { overflow-y: auto; max-height: calc(80vh - 160px); display: flex; flex-direction: column; gap: 4px; }
+  .ex-library-group { margin-top: 10px; }
+  .ex-library-group-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--accent2); padding: 4px 0; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  }
+  .ex-library-item { padding: 9px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.15s; }
+  .ex-library-item:hover { background: var(--surface); color: var(--accent); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--card); border: 1px solid var(--green); color: var(--green);
+    padding: 10px 20px; border-radius: 20px; font-size: 13px;
+    z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -387,6 +445,7 @@
 <header>
   <h1>ANTRENMAN</h1>
   <span>70 kg · 4 Haftalık Program</span>
+  <button id="trainerBtn" class="trainer-btn" onclick="openPinModal()">ANTRENÖR</button>
 </header>
 
 <div class="week-tabs" id="weekTabs"></div>
@@ -400,7 +459,27 @@
 <div class="content" id="content"></div>
 
 <script>
-const PROGRAM = {
+const EXERCISE_LIBRARY = [
+  { group: "Göğüs", exercises: ["Düz Bench Press","İnkline Bench Press","Dekline Bench Press","Dumbbell Flat Press","İnkline Dumbbell Press","Kablo Fly (Çapraz)","Dumbbell Fly","Pec Deck","Push-up","Dips (Göğüs)","Landmine Press"] },
+  { group: "Sırt", exercises: ["Deadlift","Sumo Deadlift","Barbell Row","Dumbbell Row","Seated Cable Row","Lat Pulldown (Geniş Tutuş)","Lat Pulldown (Dar Tutuş)","Pull-up","Chin-up","T-Bar Row","Meadows Row","Face Pull (Kablo)","Straight Arm Pulldown","Rack Pull"] },
+  { group: "Omuzlar", exercises: ["Barbell Overhead Press","Dumbbell Overhead Press","Arnold Press","Dumbbell Lateral Raise","Kablo Lateral Raise","Dumbbell Front Raise","Kablo Front Raise","Face Pull","Reverse Pec Deck","Upright Row","Shrug (Barbell)","Shrug (Dumbbell)"] },
+  { group: "Bacak", exercises: ["Back Squat","Front Squat","Hack Squat","Goblet Squat","Romanian Deadlift","Leg Press","Leg Curl (Yatar)","Leg Curl (Oturur)","Leg Extension","Bulgarian Split Squat","Lunge","Walking Lunge","Step-up","Standing Calf Raise","Seated Calf Raise","Hip Thrust","Glute Bridge"] },
+  { group: "Biseps", exercises: ["Barbell Curl","EZ Bar Curl","Dumbbell Curl","Hammer Curl","Concentration Curl","Preacher Curl","İnkline Dumbbell Curl","Kablo Curl","Spider Curl"] },
+  { group: "Triseps", exercises: ["Skull Crusher (EZ Bar)","Overhead Tricep Extension","Kablo Tricep Pushdown (Bar)","Kablo Tricep Pushdown (Rope)","Dips (Triseps)","Close-Grip Bench Press","Dumbbell Kickback","Overhead Dumbbell Extension"] },
+  { group: "Karın", exercises: ["Plank","Side Plank","Crunch","Bicycle Crunch","Leg Raise","Hanging Leg Raise","Ab Wheel","Russian Twist","Cable Crunch","Dragon Flag","Dead Bug","Pallof Press"] },
+  { group: "Full Body", exercises: ["Burpee","Power Clean","Hang Clean","Snatch","Turkish Get-up","Farmer's Carry","Sled Push","Battle Rope","Kettlebell Swing","Box Jump"] }
+];
+
+function getActiveProgram() {
+  const saved = localStorage.getItem('custom_program');
+  if (saved) { try { return JSON.parse(saved); } catch(e) {} }
+  return DEFAULT_PROGRAM;
+}
+function saveCustomProgram(p) {
+  localStorage.setItem('custom_program', JSON.stringify(p));
+}
+
+const DEFAULT_PROGRAM = {
   weeks: [
     { label: "Hafta 1", note: "🔥 Adaptasyon haftası — teknik ve baz ağırlık. Her egzersizde form öncelik.", intensity: "Düşük-Orta" },
     { label: "Hafta 2", note: "📈 Ağırlıkları %5-10 artır, rep sayısını koru.", intensity: "Orta" },
@@ -471,6 +550,9 @@ const PROGRAM = {
 
 let currentWeek = 0;
 let currentDay = 0;
+let trainerMode = false;
+const TRAINER_PIN = '1234';
+let pendingExChange = null;
 // Storage key: "w{week}_d{day}_ex{ex}_s{set}_kg" etc.
 function storageKey(w, d, ex, s, type) {
   return `w${w}_d${d}_ex${ex}_s${s}_${type}`;
@@ -491,7 +573,7 @@ function isDayCompleted(w, d) {
 function renderWeekTabs() {
   const cont = document.getElementById('weekTabs');
   cont.innerHTML = '';
-  PROGRAM.weeks.forEach((wk, i) => {
+  getActiveProgram().weeks.forEach((wk, i) => {
     const btn = document.createElement('button');
     btn.className = 'week-tab' + (i === currentWeek ? ' active' : '');
     btn.textContent = wk.label;
@@ -503,7 +585,7 @@ function renderWeekTabs() {
 function renderStats() {
   const row = document.getElementById('statsRow');
   let totalSets = 0, filledSets = 0;
-  PROGRAM.days.forEach((day, d) => {
+  getActiveProgram().days.forEach((day, d) => {
     if (day.rest) return;
     day.exercises.forEach((ex, e) => {
       for (let s = 0; s < ex.sets; s++) {
@@ -512,20 +594,20 @@ function renderStats() {
       }
     });
   });
-  const completedDays = PROGRAM.days.filter((d,i) => !d.rest && isDayCompleted(currentWeek,i)).length;
-  const trainDays = PROGRAM.days.filter(d => !d.rest).length;
+  const completedDays = getActiveProgram().days.filter((d,i) => !d.rest && isDayCompleted(currentWeek,i)).length;
+  const trainDays = getActiveProgram().days.filter(d => !d.rest).length;
 
   row.innerHTML = `
     <div class="stat-pill"><strong>${completedDays}/${trainDays}</strong>gün tamamlandı</div>
     <div class="stat-pill"><strong>${filledSets}</strong>set kaydedildi</div>
-    <div class="stat-pill"><strong>${PROGRAM.weeks[currentWeek].intensity}</strong></div>
+    <div class="stat-pill"><strong>${getActiveProgram().weeks[currentWeek].intensity}</strong></div>
   `;
 }
 
 function renderDayTabs() {
   const cont = document.getElementById('dayTabs');
   cont.innerHTML = '';
-  PROGRAM.days.forEach((day, i) => {
+  getActiveProgram().days.forEach((day, i) => {
     const btn = document.createElement('button');
     let cls = 'day-tab';
     if (day.rest) cls += ' rest';
@@ -539,7 +621,7 @@ function renderDayTabs() {
 }
 
 function renderProgress() {
-  const day = PROGRAM.days[currentDay];
+  const day = getActiveProgram().days[currentDay];
   if (day.rest) {
     document.getElementById('progressFill').style.width = '0%';
     document.getElementById('progressText').textContent = 'Dinlenme günü';
@@ -559,7 +641,7 @@ function renderProgress() {
 
 function renderContent() {
   const cont = document.getElementById('content');
-  const day = PROGRAM.days[currentDay];
+  const day = getActiveProgram().days[currentDay];
   const w = currentWeek, d = currentDay;
 
   if (day.rest) {
@@ -572,13 +654,14 @@ function renderContent() {
     return;
   }
 
-  let html = `<div class="day-header"><h2>${day.name}</h2><div class="focus">${PROGRAM.weeks[w].label} · ${day.label}</div></div>`;
+  let html = `<div class="day-header"><h2>${day.name}</h2><div class="focus">${getActiveProgram().weeks[w].label} · ${day.label}</div></div>`;
 
   day.exercises.forEach((ex, e) => {
     html += `<div class="exercise-card" id="excard_${e}">
       <div class="ex-header" onclick="toggleEx(${e})">
         <span class="ex-num">${e+1}</span>
         <span class="ex-name">${ex.name}</span>
+        <button class="change-ex-btn" onclick="openExPicker(${d},${e});event.stopPropagation()">Değiştir</button>
         <div class="ex-meta">
           <span>${ex.sets} Set</span>
           <span>${ex.reps} Tekrar</span>
@@ -661,10 +744,82 @@ function completeDay(w, d) {
   render();
 }
 
+function setTrainerMode(on) {
+  trainerMode = on;
+  document.body.classList.toggle('trainer-mode', on);
+  const btn = document.getElementById('trainerBtn');
+  btn.classList.toggle('active', on);
+  btn.textContent = on ? 'ANTRENÖR MODU ✓' : 'ANTRENÖR';
+}
+
+function openPinModal() {
+  if (trainerMode) { setTrainerMode(false); return; }
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinError').classList.add('hidden');
+  document.getElementById('trainerPinModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pinInput').focus(), 50);
+}
+function closePinModal() {
+  document.getElementById('trainerPinModal').classList.add('hidden');
+}
+function submitPin() {
+  if (document.getElementById('pinInput').value === TRAINER_PIN) {
+    closePinModal(); setTrainerMode(true);
+  } else {
+    document.getElementById('pinError').classList.remove('hidden');
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function openExPicker(dayIndex, exIndex) {
+  if (!trainerMode) return;
+  pendingExChange = { dayIndex, exIndex };
+  document.getElementById('exSearchInput').value = '';
+  renderExLibrary('');
+  document.getElementById('exercisePickerModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('exSearchInput').focus(), 50);
+}
+function closeExModal() {
+  document.getElementById('exercisePickerModal').classList.add('hidden');
+  pendingExChange = null;
+}
+function renderExLibrary(query) {
+  let html = '';
+  EXERCISE_LIBRARY.forEach(cat => {
+    const filtered = query ? cat.exercises.filter(n => n.toLowerCase().includes(query)) : cat.exercises;
+    if (!filtered.length) return;
+    html += `<div class="ex-library-group"><div class="ex-library-group-title">${cat.group}</div>`;
+    filtered.forEach(name => {
+      html += `<div class="ex-library-item" onclick="selectExercise('${name.replace(/'/g,"\\'")}')">${name}</div>`;
+    });
+    html += `</div>`;
+  });
+  if (!html) html = `<div style="color:var(--muted);padding:20px;text-align:center">Sonuç bulunamadı</div>`;
+  document.getElementById('exLibraryList').innerHTML = html;
+}
+function selectExercise(newName) {
+  if (!pendingExChange) return;
+  const { dayIndex, exIndex } = pendingExChange;
+  const copy = JSON.parse(JSON.stringify(getActiveProgram()));
+  copy.days[dayIndex].exercises[exIndex].name = newName;
+  saveCustomProgram(copy);
+  closeExModal();
+  renderContent();
+  renderProgress();
+  showToast('"' + newName + '" atandı');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
 function render() {
   renderWeekTabs();
   renderStats();
-  document.getElementById('weekNote').textContent = PROGRAM.weeks[currentWeek].note;
+  document.getElementById('weekNote').textContent = getActiveProgram().weeks[currentWeek].note;
   renderDayTabs();
   renderContent();
   renderProgress();
@@ -672,5 +827,28 @@ function render() {
 
 render();
 </script>
+
+<div id="trainerPinModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">ANTRENÖR GİRİŞİ</div>
+    <input id="pinInput" class="modal-input" type="password" placeholder="PIN" maxlength="4" onkeydown="if(event.key==='Enter')submitPin()">
+    <div id="pinError" class="modal-error hidden">Yanlış PIN</div>
+    <div class="modal-actions">
+      <button onclick="submitPin()">GİRİŞ</button>
+      <button onclick="closePinModal()">İPTAL</button>
+    </div>
+  </div>
+</div>
+
+<div id="exercisePickerModal" class="modal-overlay hidden">
+  <div class="modal-box modal-box--wide">
+    <div class="modal-title">HAREKETİ DEĞİŞTİR</div>
+    <input id="exSearchInput" class="modal-input" type="text" placeholder="Ara..." oninput="renderExLibrary(this.value.trim().toLowerCase())">
+    <div id="exLibraryList" class="ex-library-list"></div>
+    <button onclick="closeExModal()" style="padding:10px;border:1px solid var(--border);border-radius:4px;background:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:16px;cursor:pointer;letter-spacing:1px">KAPAT</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
 </body>
 </html>
