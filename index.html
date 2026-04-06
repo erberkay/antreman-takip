@@ -389,6 +389,15 @@
   }
   .trainer-btn.active { border-color: var(--accent2); color: var(--accent2); background: rgba(255,77,0,0.1); }
 
+  .add-ex-btn {
+    width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 4px;
+    border: 1px dashed var(--border); border-radius: 6px; background: none;
+    color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.2s; display: none;
+  }
+  .add-ex-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .trainer-mode .add-ex-btn { display: block; }
+
   .change-ex-btn {
     font-size: 10px; padding: 3px 8px; border: 1px solid var(--border);
     border-radius: 3px; background: none; color: var(--accent2);
@@ -443,8 +452,8 @@
 <body>
 
 <header>
-  <h1>ANTRENMAN</h1>
-  <span>70 kg · 4 Haftalık Program</span>
+  <h1>ANTRENMAN <span style="color:var(--accent2)">TAKİP</span></h1>
+  <span id="weightLabel" onclick="editWeight()" title="Değiştirmek için tıkla" style="cursor:pointer">70 kg · 4 Haftalık Program</span>
   <button id="trainerBtn" class="trainer-btn" onclick="openPinModal()">ANTRENÖR</button>
 </header>
 
@@ -698,6 +707,8 @@ function renderContent() {
     html += `</div></div>`;
   });
 
+  html += `<button class="add-ex-btn" onclick="openAddExercise(${d})">+ HAREKETİ EKLE</button>`;
+
   const done = isDayCompleted(w, d);
   html += `<button class="complete-btn${done ? ' done' : ''}" onclick="completeDay(${w},${d})" id="completeBtn">
     ${done ? '✓ GÜN TAMAMLANDI' : 'GÜNÜ TAMAMLA'}
@@ -744,6 +755,34 @@ function completeDay(w, d) {
   render();
 }
 
+function getUserWeight() {
+  return localStorage.getItem('user_weight') || '70';
+}
+function editWeight() {
+  const cur = getUserWeight();
+  const label = document.getElementById('weightLabel');
+  label.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.value = cur;
+  inp.style.cssText = 'width:56px;background:var(--surface);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:"DM Sans",sans-serif;font-size:13px;padding:2px 6px;text-align:center;-moz-appearance:textfield;';
+  const suffix = document.createTextNode(' kg · 4 Haftalık Program');
+  label.appendChild(inp);
+  label.appendChild(suffix);
+  inp.focus(); inp.select();
+  function save() {
+    const val = parseInt(inp.value) || parseInt(cur);
+    localStorage.setItem('user_weight', val);
+    label.textContent = val + ' kg · 4 Haftalık Program';
+    label.onclick = editWeight;
+  }
+  inp.onblur = save;
+  inp.onkeydown = e => {
+    if (e.key === 'Enter') inp.blur();
+    if (e.key === 'Escape') { label.textContent = cur + ' kg · 4 Haftalık Program'; label.onclick = editWeight; }
+  };
+}
+
 function setTrainerMode(on) {
   trainerMode = on;
   document.body.classList.toggle('trainer-mode', on);
@@ -775,6 +814,16 @@ function submitPin() {
 function openExPicker(dayIndex, exIndex) {
   if (!trainerMode) return;
   pendingExChange = { dayIndex, exIndex };
+  document.getElementById('exercisePickerModal').querySelector('.modal-title').textContent = 'HAREKETİ DEĞİŞTİR';
+  document.getElementById('exSearchInput').value = '';
+  renderExLibrary('');
+  document.getElementById('exercisePickerModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('exSearchInput').focus(), 50);
+}
+function openAddExercise(dayIndex) {
+  if (!trainerMode) return;
+  pendingExChange = { dayIndex, exIndex: -1 };
+  document.getElementById('exercisePickerModal').querySelector('.modal-title').textContent = 'HAREKETİ EKLE';
   document.getElementById('exSearchInput').value = '';
   renderExLibrary('');
   document.getElementById('exercisePickerModal').classList.remove('hidden');
@@ -802,12 +851,16 @@ function selectExercise(newName) {
   if (!pendingExChange) return;
   const { dayIndex, exIndex } = pendingExChange;
   const copy = JSON.parse(JSON.stringify(getActiveProgram()));
-  copy.days[dayIndex].exercises[exIndex].name = newName;
+  if (exIndex === -1) {
+    copy.days[dayIndex].exercises.push({ name: newName, sets: 3, reps: '10-12', note: '' });
+  } else {
+    copy.days[dayIndex].exercises[exIndex].name = newName;
+  }
   saveCustomProgram(copy);
   closeExModal();
   renderContent();
   renderProgress();
-  showToast('"' + newName + '" atandı');
+  showToast(exIndex === -1 ? '"' + newName + '" eklendi' : '"' + newName + '" atandı');
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -820,6 +873,7 @@ function render() {
   renderWeekTabs();
   renderStats();
   document.getElementById('weekNote').textContent = getActiveProgram().weeks[currentWeek].note;
+  document.getElementById('weightLabel').textContent = getUserWeight() + ' kg · 4 Haftalık Program';
   renderDayTabs();
   renderContent();
   renderProgress();
