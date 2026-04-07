@@ -394,6 +394,45 @@
     border-radius: 3px; background: none; color: var(--accent2);
     font-family: 'DM Sans', sans-serif; cursor: pointer; margin-left: 6px;
   }
+  .delete-ex-btn {
+    font-size: 10px; padding: 3px 7px; border: 1px solid var(--border);
+    border-radius: 3px; background: none; color: var(--red);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-left: 2px;
+  }
+  .set-controls {
+    display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .set-ctrl-btn {
+    width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 3px;
+    background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1;
+    transition: all 0.15s;
+  }
+  .set-ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .set-count-label { font-size: 12px; color: var(--muted); flex: 1; }
+  .prev-kg { font-size: 10px; color: var(--muted); text-align: center; margin-top: 3px; }
+  .set-input.pr { border-color: #ffd700 !important; color: #ffd700 !important; }
+  .day-note-label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 1px; margin-top: 20px; margin-bottom: 6px;
+  }
+  .day-note-area {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; padding: 10px 12px; resize: vertical; min-height: 64px;
+  }
+  .day-note-area:focus { outline: none; border-color: var(--accent); }
+  .weight-hist-btn {
+    font-size: 11px; padding: 2px 8px; border: 1px solid var(--border);
+    border-radius: 3px; background: none; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-left: 6px;
+  }
+  .weight-hist-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .weight-chart-wrap { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-top: 8px; }
+  .wc-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .wc-bar { background: var(--accent); border-radius: 2px 2px 0 0; width: 100%; min-height: 2px; }
+  .wc-label { font-size: 9px; color: var(--muted); }
+  .wc-val { font-size: 10px; color: var(--text); }
 
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -443,6 +482,7 @@
 <header>
   <h1>ANTRENMAN <span style="color:var(--accent2)">TAKİP</span></h1>
   <span id="weightLabel" onclick="editWeight()" title="Değiştirmek için tıkla" style="cursor:pointer">70 kg · 4 Haftalık Program</span>
+  <button class="weight-hist-btn" onclick="openWeightHistory()">📊</button>
 </header>
 
 <div class="week-tabs" id="weekTabs"></div>
@@ -661,6 +701,7 @@ function renderContent() {
         <span class="ex-num">${e+1}</span>
         <span class="ex-name">${ex.name}</span>
         <button class="change-ex-btn" onclick="openExPicker(${d},${e});event.stopPropagation()">Değiştir</button>
+        <button class="delete-ex-btn" onclick="deleteExercise(${d},${e});event.stopPropagation()">✕</button>
         <div class="ex-meta">
           <span>${ex.sets} Set</span>
           <span>${ex.reps} Tekrar</span>
@@ -678,11 +719,16 @@ function renderContent() {
       const kgVal = loadVal(w, d, e, s, 'kg');
       const repVal = loadVal(w, d, e, s, 'rep');
       const done = loadVal(w, d, e, s, 'done');
+      const prevKg = w > 0 ? loadVal(w-1, d, e, s, 'kg') : '';
+      const pr = kgVal ? isPR(d, e, s, kgVal) : false;
       html += `
           <div class="set-num">${s+1}</div>
-          <input class="set-input${kgVal ? ' filled':''}" type="number" placeholder="kg" value="${kgVal}" 
-            onchange="saveInput(${w},${d},${e},${s},'kg',this)" 
-            oninput="saveInput(${w},${d},${e},${s},'kg',this)">
+          <div>
+            <input class="set-input${kgVal ? ' filled':''}${pr ? ' pr':''}" type="number" placeholder="${prevKg ? prevKg : 'kg'}" value="${kgVal}"
+              onchange="saveInput(${w},${d},${e},${s},'kg',this)"
+              oninput="saveInput(${w},${d},${e},${s},'kg',this)">
+            ${prevKg ? `<div class="prev-kg">↑ ${prevKg}kg</div>` : ''}
+          </div>
           <input class="set-input${repVal ? ' filled':''}" type="number" placeholder="${ex.reps.split('-')[0]}" value="${repVal}"
             onchange="saveInput(${w},${d},${e},${s},'rep',this)"
             oninput="saveInput(${w},${d},${e},${s},'rep',this)">
@@ -692,12 +738,20 @@ function renderContent() {
             onclick="toggleDone(${w},${d},${e},${s},this)">`;
     }
 
-    html += `</div>`;
+    html += `</div>
+        <div class="set-controls">
+          <button class="set-ctrl-btn" onclick="changeSetCount(${d},${e},-1);event.stopPropagation()">−</button>
+          <span class="set-count-label">${ex.sets} Set</span>
+          <button class="set-ctrl-btn" onclick="changeSetCount(${d},${e},1);event.stopPropagation()">+</button>
+        </div>`;
     if (ex.note) html += `<div class="ex-note">${ex.note}</div>`;
     html += `</div></div>`;
   });
 
   html += `<button class="add-ex-btn" onclick="openAddExercise(${d})">+ HAREKETİ EKLE</button>`;
+  html += `<div class="day-note-label">Gün Notu</div>
+  <textarea class="day-note-area" placeholder="Bu antrenman hakkında not al..."
+    oninput="saveDayNote(${w},${d},this.value)">${loadDayNote(w,d)}</textarea>`;
 
   const done = isDayCompleted(w, d);
   html += `<button class="complete-btn${done ? ' done' : ''}" onclick="completeDay(${w},${d})" id="completeBtn">
@@ -801,6 +855,80 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+function deleteExercise(dayIndex, exIndex) {
+  if (!confirm('Bu hareketi silmek istediğine emin misin?')) return;
+  const copy = JSON.parse(JSON.stringify(getActiveProgram()));
+  copy.days[dayIndex].exercises.splice(exIndex, 1);
+  saveCustomProgram(copy);
+  renderContent();
+  renderProgress();
+  showToast('Hareket silindi');
+}
+
+function changeSetCount(dayIndex, exIndex, delta) {
+  const copy = JSON.parse(JSON.stringify(getActiveProgram()));
+  copy.days[dayIndex].exercises[exIndex].sets = Math.max(1, copy.days[dayIndex].exercises[exIndex].sets + delta);
+  saveCustomProgram(copy);
+  renderContent();
+  renderProgress();
+}
+
+function isPR(d, e, s, val) {
+  const v = parseFloat(val);
+  if (!v) return false;
+  for (let w2 = 0; w2 < 4; w2++) {
+    if (w2 === currentWeek) continue;
+    const prev = parseFloat(loadVal(w2, d, e, s, 'kg'));
+    if (prev >= v) return false;
+  }
+  return true;
+}
+
+function saveDayNote(w, d, val) {
+  localStorage.setItem(`w${w}_d${d}_note`, val);
+}
+function loadDayNote(w, d) {
+  return localStorage.getItem(`w${w}_d${d}_note`) || '';
+}
+
+function saveWeightHistory(kg) {
+  const history = JSON.parse(localStorage.getItem('weight_history') || '[]');
+  const today = new Date().toISOString().split('T')[0];
+  const idx = history.findIndex(e => e.date === today);
+  if (idx >= 0) history[idx].kg = kg;
+  else history.push({ date: today, kg });
+  if (history.length > 12) history.splice(0, history.length - 12);
+  localStorage.setItem('weight_history', JSON.stringify(history));
+}
+function openWeightHistory() {
+  const history = JSON.parse(localStorage.getItem('weight_history') || '[]');
+  const modal = document.getElementById('weightHistoryModal');
+  const container = document.getElementById('weightChartContainer');
+  if (!history.length) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Henüz kilo geçmişi yok.<br>Kilo bilgisine tıklayarak ekleyebilirsin.</div>';
+  } else {
+    const max = Math.max(...history.map(e => e.kg));
+    const min = Math.min(...history.map(e => e.kg));
+    const range = max - min || 1;
+    let html = '<div class="weight-chart-wrap">';
+    history.forEach(e => {
+      const h = Math.max(4, Math.round(((e.kg - min) / range) * 60) + 10);
+      const dateLabel = e.date.slice(5);
+      html += `<div class="wc-col">
+        <div class="wc-val">${e.kg}</div>
+        <div class="wc-bar" style="height:${h}px"></div>
+        <div class="wc-label">${dateLabel}</div>
+      </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  modal.classList.remove('hidden');
+}
+function closeWeightHistory() {
+  document.getElementById('weightHistoryModal').classList.add('hidden');
+}
+
 function getUserWeight() {
   return localStorage.getItem('user_weight') || '70';
 }
@@ -819,6 +947,7 @@ function editWeight() {
   function save() {
     const val = parseInt(inp.value) || parseInt(cur);
     localStorage.setItem('user_weight', val);
+    saveWeightHistory(val);
     label.textContent = val + ' kg · 4 Haftalık Program';
     label.onclick = editWeight;
   }
@@ -842,6 +971,14 @@ function render() {
 
 render();
 </script>
+
+<div id="weightHistoryModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">KİLO GEÇMİŞİ</div>
+    <div id="weightChartContainer"></div>
+    <button onclick="closeWeightHistory()" style="padding:10px;border:1px solid var(--border);border-radius:4px;background:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:16px;cursor:pointer;letter-spacing:1px">KAPAT</button>
+  </div>
+</div>
 
 <div id="exercisePickerModal" class="modal-overlay hidden">
   <div class="modal-box modal-box--wide">
